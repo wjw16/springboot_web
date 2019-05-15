@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.presale.dao.RepayScheduleDao">
+    <!--获取当月未还款 -->
+    <select id="getCurrentRepay" parameterType="Map" resultType="Map">
+        <![CDATA[
+select DATE_FORMAT(A.create_time,'%Y年%m月%d日') as createTime,DATE_FORMAT(A.repay_time,'%m月%d日')as repayTime,DATE_FORMAT(A.repay_time,'%m月')as repayMonth
+ ,repay_amount as repayAmount,repay_seq as repaySeq,B.order_no as orderNo,format(B.loan_oldMoney,2) as loanMoney,B.repay_cycle as repayCycle,B.loan_no as loanNo,
+ B.member_id as memberId,B.id as mlId,B.product_name as productName
+ from repay_schedule A
+   JOIN member_loan B on A.ml_id=B.id
+where A.status=0  and A.member_id=#{memberId}   and   DATE_FORMAT(NOW(),'%m')= DATE_FORMAT(A.repay_time,'%m')]]>
+<if test="orderNo!=null">
+ and  B.order_no=#{orderNo}
+</if>
+ORDER BY A.repay_time asc
+
+    </select>
+    <!--获取未还或已还款 -->
+    <select id="getAllRepay" parameterType="Map" resultType="Map">
+        <![CDATA[
+    select DATE_FORMAT(A.create_time,'%Y年%m月%d日') as createTime,DATE_FORMAT(A.repay_time,'%m月%d日')as repayTime,DATE_FORMAT(A.repay_time,'%m')as repayMonth
+     ,repay_amount as repayAmount,repay_seq as repaySeq,B.order_no as orderNo,B.product_name as productName,format(B.loan_oldMoney,2) as loanMoney,
+     A.status,B.repay_cycle as repayCycle, B.loan_no as loanNo,B.member_id as memberId,B.id as mlId ,
+     case  when YEARWEEK(date_format(A.update_time,'%Y-%m-%d')) = YEARWEEK(now()) then
+     (
+      case DAYOFWEEK(A.update_time) when 7 then '星期天' when 1 then '星期一' when 2 then '星期二' when 3 then '星期三'
+                when 4 then '星期四' when 5 then '星期五' when 6 then '星期六' end
+     )
+     else
+      DATE_FORMAT(A.update_time,'%Y年%m月%d日 %i:%s')
+      end as weekName,
+
+       DATE_FORMAT(A.update_time,'%Y年%m月%d日 %i:%s') as updateTime
+
+     from repay_schedule A
+       JOIN member_loan B on A.ml_id=B.id
+    where A.member_id=#{memberId}
+        ]]>
+        <if test="status !=null">  and  A.status=#{status} </if>
+        ORDER BY A. update_time desc
+        </select>
+     <!-- 一键还清未还款列表-->
+<select id="getAllSumRepay" parameterType="Map" resultType="Map">
+    select DATE_FORMAT(B.create_time,'%Y年%m月%d日') as createTime,B.loan_no as loanNo,B.member_id as memberId,B.id as mlId,
+    format(sum(A.repay_amount),2) as repayAmount,B.product_name as productName,B.order_no as orderNo,format(B.loan_oldMoney,2) as loanMoney,B.repay_cycle as repayCycle
+    from repay_schedule A JOIN member_loan B on A.ml_id=B.id where A.status=0 and A.member_id=#{memberId}
+    GROUP BY B.ID
+    ORDER BY  B.create_time
+
+</select>
+  <!--  <update id="updateRepayForOne" parameterType="map">
+       update  repay_schedule set status=1,update_time=NOW() where ml_id=#{mlId} and repay_seq=#{repaySeq}
+    </update>-->
+</mapper>

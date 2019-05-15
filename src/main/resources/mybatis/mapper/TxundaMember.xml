@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.presale.dao.TxundaMemberDao">
+
+<select id="findMemberById" parameterType="int" resultType="map">
+    select id as memberId,phone from txunda_member where id=#{memberId}
+</select>
+</mapper>

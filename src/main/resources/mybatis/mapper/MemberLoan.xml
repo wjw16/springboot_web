@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.presale.dao.MemberLoanDao">
+
+    <sql id="memberLoad_Columns">
+        member_id,
+        loan_no,
+        order_no,
+        stock_oldvalue,
+        stock_currentVale,
+        pledge_rate,
+        warning_line,
+        repay_rate,
+        repay_cycle,
+        loan_oldMoney,
+        loan_currentMoney,
+        status,
+        crate_time,
+        update_time,
+        is_wd,
+        product_Name,
+        update_user
+    </sql>
+    <sql id="part_Columns">
+        member_id as memberId,
+        order_no as orderNo,
+        repay_rate as repayRate,
+        repay_cycle as repayCycle,
+        loan_oldMoney as loanOldMoney,
+        status,
+        product_Name as productName,
+        crate_time as createTime
+    </sql>
+    <insert id="insertMemberLoan" parameterType="Map" >
+             insert into member_loan (<include refid="memberLoad_Columns"/>) values(#{memberId},#{loanNo},#{orderNo},#{stockOldValue},
+                      #{stockCurrentValue},#{pledgeRate},#{warningLine},#{repayRate},#{loanOldMoney},#{loanCurrentMoney},#{isPayOff}
+                      ,#{createTime},#{updateTime},#{iswd},#{isDelete},#{updateUser})
+    </insert>
+    <update id="updateColumn" parameterType="Map">
+        update member_loan set ${col_name}=#{col_value} where id=#{id}
+    </update>
+    <select id="getStockOrderValueOfDay" parameterType="Map" resultType="Map">
+  SELECT A.member_id as memberId,A.loan_no as loanNo, A.order_no as orderNo,
+    Format(A.stock_oldvalue,2) as stockOldValue,A.pledge_rate as pledgeRate,FORMAT(A.loan_oldMoney, 2)as loanOldMoney, FORMAT(C.sliding_scales ,2) as slidingScales,
+    FORMAT(A.stock_currentValue,2) as stockCurrentValue, A.warning_line as warningLine
+    ,C.`name` as productName,D.file_name as fileName,Format(A.stock_oldValue*A.warning_line/100,2) as warningValue
+    from member_loan A join txunda_refri_order B on A.order_no=B.order_no JOIN txunda_product_name C on B.product_name_id=C.id
+    left join txunda_bestsign_contract as D on A.order_no=D.order_no
+    where A.status=0 and A.is_delete=0 and A.member_id=#{memberId}
+    </select>
+    <select id="getRemainLoanSum" resultType="Map" parameterType="Map">
+      SELECT A.loan_no as loanNo, A.loan_oldMoney as loanOldMoney,COUNT(*) as remainCount from member_loan A  where A.status=0 and member_id=#{memberId}
+    </select>
+    <select id="getLoanRecord" parameterType="Map" resultType="Map">
+        select  member_id as memberId, order_no as orderNo, repay_cycle as repayCycle,
+         FORMAT(loan_oldMoney,0) as loanMoney, status, product_Name as productName,
+         DATE_FORMAT(update_time,'%Y年%m月%d日 %i:%s') as updateTime,DATE_FORMAT(create_time,'%Y年%m月%d日') as createTime,
+          FORMAT(repay_cycle/12,3) as monthRate,
+         case `status` when 0 then '未开始还款' when 1 then '正在还款中' when 2 then '已还清' end as statusDesc,
+         		  case  when YEARWEEK(date_format(update_time,'%Y-%m-%d')) = YEARWEEK(now()) then
+ (
+  case DAYOFWEEK(update_time) when 1 then '星期天' when 2 then '星期一' when 3 then '星期二' when 4 then '星期三'
+            when 5 then '星期四' when 6 then '星期五' when 7 then '星期六' end
+ )
+ else
+  DATE_FORMAT(update_time,'%Y年%m月%d日 %i:%s')
+  end as weekName, 'repay' as type
+        from member_loan where member_Id=#{memberId} and is_delete=0 order by updateTime
+    </select>
+</mapper>

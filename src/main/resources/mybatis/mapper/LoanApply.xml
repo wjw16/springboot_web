@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.presale.dao.LoanApplyDao">
+
+
+    <sql id="loanApply_Columns">
+        member_id,
+        apply_no,
+        status,
+        apply_remark,
+        order_no,
+        create_time,
+        update_time,
+        update_user,
+        repay_cycle,
+        product_name
+    </sql>
+    <insert id="insertLoanApply" parameterType="Map" >
+      insert into  loan_apply (<include refid="loanApply_Columns"/>)values(#{memberId},#{applyNo},#{status},#{applyRemark},#{orderNo},#{createTime},#{updateTime},#{updateUser},#{repayCycle},#{productName})
+    </insert>
+    <select id="getRefriOrderInfo" parameterType="Map" resultType="Map">
+        SELECT A.order_no as orderNo,A.create_time as createTime,A.weight,A.weight_unit as weightUnit,B.address, B.`name` as refriName,C.`name` as productName from txunda_refri_order A
+        join txunda_refrigeratory B on A.refri_id=B.ID
+        join txunda_product_name C on A.product_name_id=C.id
+        where A.order_no=#{orderNo}
+    </select>
+    <select id="findConutByStatus" parameterType="Map" resultType="int">
+          select count(*) from loan_apply where status=#{status} and member_id=#{memberId};
+    </select>
+</mapper>

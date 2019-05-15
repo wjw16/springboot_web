@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.presale.dao.RefriMessageDao">
+
+<insert id="insertMessage" parameterType="Map" >
+insert into txunda_refri_message (m_id,title,content,ext_subtype,ext_order_no,ext_loan_no,create_time) values(#{memberId},#{title},#{content},#{subType}
+,#{orderNo},#{loanNo},#{createTime})
+</insert>
+</mapper>

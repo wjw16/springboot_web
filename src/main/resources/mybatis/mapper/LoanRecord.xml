@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.presale.dao.LoanRecordDao">
+
+    <update id="updateStatus" parameterType="Map" >
+         update  loan_record set status=#{status},updae_time=#now() where  loanNo=#{loanNo}
+    </update>
+    <select id="findRecordByParam" parameterType="Map" resultType="Map">
+        select  member_id as memberId,loan_no as loanNo,order_no as orderNo,apply_no as applyNo
+        ,stock_value as stockValue,pledge_rate as pledgeRate,warning_line as warningLine
+        ,repay_rate as repayRate,loan_money as loanMoney,create_time as createTime
+        ,update_time as updateTime,status, update_user as updateUser,is_delete as isDelete
+        ,repay_cycle as repayCycle ,order_no as orderNo,product_name as productName
+        from loan_record where is_delete=0
+        <if test="loanNo!=null and loanNo!=''.toString()">
+         and loan_no=#{loanNo}
+        </if>
+        <if test="orderNo!=null and orderNo!=''.toString()">
+            and order_no=#{orderNo}
+        </if>
+    </select>
+    <update id="updateColumn" parameterType="Map">
+        update loan_record set ${colName}=#{colValue}
+        <if test="updateTime!=null">
+            ,update_time=#{updateTime}
+        </if>
+        <if test="pledgeTime !=null">
+            ,pledge_time=#{pledgeTime}
+        </if>
+        where loan_no=#{loanNo}
+    </update>
+    <select id="getVCAndPayPWD" parameterType="Map" resultType="Map">
+        select A.pay_password as payPassword,B.vc from txunda_member A join txunda_member_operate B on A.phone=B.way and A.id=#{memberId} and B.type='verify_login';
+    </select>
+    <select id="showPledgeResultInfoByLoanNo" parameterType="String" resultType="Map">
+           select Format(A.loan_money,2) loanMoney,A.repay_cycle as repayCycle ,A.apply_no as applyNo,A.order_no as orderNo ,B.phone,B.real_name as realName,
+          DATE_FORMAT(A.pledge_time,'%Y-%m-%d')  as pledgeTime,A.loan_no as loanNo,A.member_id as memberId
+          from loan_record  A join txunda_member B on A.member_id=B.id and A.loan_no=#{loanNo}
+    </select>
+
+    <select id="getloanRecord" parameterType="int" resultType="Map">
+
+        <![CDATA[     select member_id as memberId, order_no as orderNo,product_name as productName,stock_value as stockValue,pledge_rate as pledgeRate,
+          FORMAT(loan_money,0) as loanMoney,`status`, DATE_FORMAT(update_time,'%Y年%m月%d日 %i:%s') as updateTime,DATE_FORMAT(create_time,'%Y年%m月%d日') as createTime,
+		 case `status` when -1 then '质押审核未通过' when 0 then '借款审核已通过' when 1 then '质押审核通过,待放款中' when 2 then '质押审核中' END as statusDesc,
+		  case  when YEARWEEK(date_format(update_time,'%Y-%m-%d')) = YEARWEEK(now()) then
+ (
+   case DAYOFWEEK(update_time) when 1 then '星期天' when 2 then '星期一' when 3 then '星期二' when 4 then '星期三'
+            when 5 then '星期四' when 6 then '星期五' when 7 then '星期六' end
+ )
+ else
+  DATE_FORMAT(update_time,'%Y年%m月%d日 %i:%s')
+  end as weekName, 'loan' as type
+		 from loan_record where member_Id=#{memberId} and status<>1  order by create_time desc ]]>
+    </select>
+</mapper>

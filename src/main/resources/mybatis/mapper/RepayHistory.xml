@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.presale.dao.RepayHistoryDao">
+
+
+    <sql id="repayRecord_Columns">
+        member_id,
+        ml_id,
+        rs_id,
+        repay_amount,
+        repay_type,
+        repay_from,
+        repay_to,
+        note,
+        create_time
+    </sql>
+<insert id="insertRecord" parameterType="Map"  >
+    insert into repay_history (<include refid="repayRecord_Columns"></include>) value (#{memberId},#{mlId},#{rsId},#{repayAmount},#{repayType},#{repayFrom},#{repayTo},#{note},now())
+</insert>
+   <select id="getRepayRecordsByMemberId">
+     select A.ml_id as mlId,A.member_id as memberId,rs_id as rsId,A.repay_amount as repayAmount,
+        A.repay_Type as repayType,A.create_time as createTime,A.repay_from as repayFrom, A.repay_to as repayTo,A.note,
+         B.order_no, B.repay_cycle as repayCycle
+       from repay_history A join member_loan  B on A.ml_id=B.id join repay_schedule C on A.rs_id=C.ID
+       where A.member_id=#{memberId}
+   </select>
+</mapper>
