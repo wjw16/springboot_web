@@ -1,0 +1,38 @@
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Insert title here</title>
+<style type="text/css">
+</style>
+    <script src="/js/jquery.min.js"></script>
+    <script>
+
+            $.ajax({
+                type: "GET",
+                url: "/pdf/ajaxTest.do",
+                dataType: "json",
+                success: function(data){
+                    if(data.success==true){
+                        $("#container").html("请求成功了");
+                    }
+                    else{
+                        $("#container").html("没有成功");
+                    }
+                }
+            });
+    </script>
+</head>
+<body>
+    <p >迷你校</p>
+     <div class="text">个人简历</div>
+     <table border='1' bgcolor="#00FF00">
+     <tr><td>number</td><td>name</td></tr>
+     <tr><td>1</td><td>ch</td></tr>
+     <tr><td>2</td><td>es</td></tr>
+     </table>
+     <p>教育经历ss</p>
+     <p>12422</p>
+     <p>jiaoyujingli</p>
+        <div id="container"></div>
+</body>
+</html>
